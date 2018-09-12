@@ -24,7 +24,7 @@
   [req setHTTPMethod:method];
 
   // set headers
-  if([method isEqualToString:@"POST"]) {
+  if([method isEqualToString:@"POST"] || _params.fields.count > 1) {
       NSString *formBoundaryString = [self generateBoundaryString];
           NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", formBoundaryString];
           [req setValue:contentType forHTTPHeaderField:@"Content-Type"];
