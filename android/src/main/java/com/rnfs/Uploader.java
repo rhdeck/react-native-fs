@@ -64,7 +64,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             connection.setDoOutput(true);
             ReadableMapKeySetIterator headerIterator = params.headers.keySetIterator();
             connection.setRequestMethod(params.method);
-            if (params.method.toLowerCase == "put" && params.files.size() == 1) {
+            if (params.method.toLowerCase() == "put" && params.files.size() == 1) {
                 while (headerIterator.hasNextKey()) {
                     String key = headerIterator.nextKey();
                     String value = params.headers.getString(key);
