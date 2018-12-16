@@ -64,44 +64,58 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             connection.setDoOutput(true);
             ReadableMapKeySetIterator headerIterator = params.headers.keySetIterator();
             connection.setRequestMethod(params.method);
-            request = new DataOutputStream(connection.getOutputStream());
-            if (params.method.toLowerCase() == "put" && params.files.size() == 1) {
-                // PUT with no multipart
+            if (params.method.toLowerCase == "put" && params.files.size() == 1) {
                 while (headerIterator.hasNextKey()) {
                     String key = headerIterator.nextKey();
                     String value = params.headers.getString(key);
                     connection.setRequestProperty(key, value);
                 }
                 ReadableMap map = params.files.get(0);
-                File file = new File(map.getString("filepath"));
-                FileInputStream fileInputStream = new FileInputStream(file);
-                Readed = 0;
-                bufferAvailable = 4096;
-                bufferSize = Math.min(bufferAvailable, maxBufferSize);
-                byte[] b = new byte[bufferSize];
-                totalSize = (int) file.length();
-                byteRead = fileInputStream.read(b, 0, Math.min(totalSize - Readed, bufferSize));
-                Readed += byteRead;
-                while (byteRead > 0) {
-                    if (mAbort.get())
-                        throw new Exception("Upload has been aborted");
-                    request.write(b, 0, byteRead);
-                    byteRead = fileInputStream.read(b, 0, Math.min(totalSize - Readed, bufferSize));
-                    if (byteRead == -1) {
-                        mParams.onUploadProgress.onUploadProgress(fileCount, totalSize, Readed);
-                    } else {
-                        Readed += byteRead;
-                        mParams.onUploadProgress.onUploadProgress(fileCount, totalSize, Readed);
-                    }
+                try {
+                    name = map.getString("name");
+                    filename = map.getString("filename");
+                    filetype = map.getString("filetype");
+                } catch (NoSuchKeyException e) {
+                    name = map.getString("name");
+                    filename = map.getString("filename");
+                    filetype = getMimeType(map.getString("filepath"));
                 }
+                File file = new File(map.getString("filepath"));
+                totalFileLength = file.length();
+                mParams.onUploadBegin.onUploadBegin();
+                long requestLength = totalFileLength;
+                connection.setRequestProperty("Content-length", "" + (int) requestLength);
+                connection.setFixedLengthStreamingMode((int) requestLength);
+                connection.connect();
+                request = new DataOutputStream(connection.getOutputStream());
+                byteSentTotal = 0;
+                Runtime run = Runtime.getRuntime();
+                int bytes_read = 0;
+                BufferedInputStream bufInput = new BufferedInputStream(new FileInputStream(file));
+                int buffer_size = (int) Math.ceil(totalFileLength / 100.f);
+                if (buffer_size > run.freeMemory() / 10.f) {
+                    buffer_size = (int) Math.ceil(run.freeMemory() / 10.f);
+                }
+                byte[] buffer = new byte[buffer_size];
+                while ((bytes_read = bufInput.read(buffer)) != -1) {
+                    request.write(buffer, 0, bytes_read);
+                    byteSentTotal += bytes_read;
+                    mParams.onUploadProgress.onUploadProgress((int) totalFileLength - tail.length(), byteSentTotal);
+                }
+                request.writeBytes(crlf);
+                fileCount++;
+                bufInput.close();
+                request.writeBytes(tail);
+                request.flush();
+                request.close();
             } else {
+
                 connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
                 while (headerIterator.hasNextKey()) {
                     String key = headerIterator.nextKey();
                     String value = params.headers.getString(key);
                     connection.setRequestProperty(key, value);
                 }
-
                 ReadableMapKeySetIterator fieldsIterator = params.fields.keySetIterator();
 
                 while (fieldsIterator.hasNextKey()) {
@@ -170,10 +184,9 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                     bufInput.close();
                 }
                 request.writeBytes(tail);
+                request.flush();
+                request.close();
             }
-            request.flush();
-            request.close();
-
             responseStream = new BufferedInputStream(connection.getInputStream());
             responseStreamReader = new BufferedReader(new InputStreamReader(responseStream));
             WritableMap responseHeaders = Arguments.createMap();
@@ -194,7 +207,9 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             res.headers = responseHeaders;
             res.body = response;
             res.statusCode = statusCode;
-        } finally {
+        } finally
+
+        {
             if (connection != null)
                 connection.disconnect();
             if (request != null)
