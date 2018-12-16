@@ -810,6 +810,15 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
   __block NSURL* videoURL = [NSURL URLWithString:destination];
   __block NSError *error = nil;
   PHFetchResult *phAssetFetchResult = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
+    if (phAssetFetchResult.count == 0) {
+        NSString *errorText = [NSString stringWithFormat:@"Failed to fetch PHAsset with local identifier %@ with no error message.", imageUri];
+        
+        NSMutableDictionary* details = [NSMutableDictionary dictionary];
+        [details setValue:errorText forKey:NSLocalizedDescriptionKey];
+        NSError *error = [NSError errorWithDomain:@"RNFS" code:500 userInfo:details];
+        [self reject: reject withError:error];
+        return;
+    }
   PHAsset *phAsset = [phAssetFetchResult firstObject];
   dispatch_group_t group = dispatch_group_create();
   dispatch_group_enter(group);
