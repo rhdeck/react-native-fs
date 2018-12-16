@@ -143,7 +143,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void writeFile(String filepath, String base64Content, Promise promise) {
+  public void writeFile(String filepath, String base64Content, ReadableMap options, Promise promise) {
     try {
       byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
 
@@ -316,7 +316,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void moveFile(String filepath, String destPath, Promise promise) {
+  public void moveFile(String filepath, String destPath, ReadableMap options, Promise promise) {
     try {
       File inFile = new File(filepath);
 
@@ -334,7 +334,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void copyFile(String filepath, String destPath, Promise promise) {
+  public void copyFile(String filepath, String destPath, ReadableMap options, Promise promise) {
     try {
       copyFile(filepath, destPath);
 
@@ -734,11 +734,10 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       };
 
       params.onUploadProgress = new UploadParams.onUploadProgress() {
-        public void onUploadProgress(int fileCount,int totalBytesExpectedToSend,int totalBytesSent) {
+        public void onUploadProgress(int totalBytesExpectedToSend,int totalBytesSent) {
           WritableMap data = Arguments.createMap();
 
           data.putInt("jobId", jobId);
-          data.putInt("FileID",fileCount);
           data.putInt("totalBytesExpectedToSend", totalBytesExpectedToSend);
           data.putInt("totalBytesSent", totalBytesSent);
 

@@ -2,6 +2,16 @@
 
 Native filesystem access for react-native
 
+## IMPORTANT
+
+For RN < 0.57 and/or Gradle < 3 you MUST install react-native-fs at version @2.11.17!
+
+For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version @2.12!
+
+## Changes for v2.12
+- #564 [Android] Upgrade to Gradle 3 (BREAKING compatiblity for < RN 0.57)
+- #571 [Android] Fix issue #566 android progress callback not sync and handle uppercase file extension mimetype
+
 ## Changes for v2.11
 - Prepared for RN 0.56 thanx to [#535](https://github.com/itinance/react-native-fs/pull/535) by [rmevans9](https://github.com/rmevans9)
 - #503 make sure to return the original file uri if content:// scheme is not used
@@ -10,6 +20,9 @@ Native filesystem access for react-native
 - #516 [iOS] Ensure _bytesWritten is correct in download
 - #519 updated compilesdkversion and buildtoolsversion
 - #535 Make this work with RN56
+- #558 [Android] fixed missing parameter in movefile and writefile
+- #557 [Android] copyFile: fix missing parameter on Android
+- #564 [Android] Replace deprecated 'compile' gradle configuration with 'implementation
 
 ## Changes for v2.10
 - UploadFiles is now also available for Android [#486](https://github.com/itinance/react-native-fs/pull/486) by [hank121314](https://github.com/hank121314)
@@ -394,7 +407,7 @@ Node.js style version of `readDir` that returns only the names. Note the lowerca
 
 ### `stat(filepath: string): Promise<StatResult>`
 
-Stats an item at `filepath`. If the `filepath` is linked to a virtual file, for example Android Content URI, the `originalPath` can be used to find the pointed file path. 
+Stats an item at `filepath`. If the `filepath` is linked to a virtual file, for example Android Content URI, the `originalPath` can be used to find the pointed file path.
 The promise resolves with an object with the following properties:
 
 ```
@@ -600,7 +613,7 @@ if (await RNFS.isResumable(jobId) {
 
 For use when using background downloads, tell iOS you are done handling a completed download.
 
-Read more about background donwloads in the [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios) section.
+Read more about background downloads in the [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios) section.
 
 ### (iOS only) `uploadFiles(options: UploadFileOptions): { jobId: number, promise: Promise<UploadResult> }`
 
